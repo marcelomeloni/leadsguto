@@ -58,13 +58,22 @@ export default function CadastrarPage() {
     const email = (form.elements.namedItem("email") as HTMLInputElement).value;
     const telefone = (form.elements.namedItem("telefone") as HTMLInputElement).value;
     
+    let captado_por = null;
+    try {
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        captado_por = JSON.parse(userStr).id;
+      }
+    } catch (e) {}
+
     const payload = {
       nome,
       email,
       telefone,
       bairro: bairroBusca,
       origem: "Rua",
-      engajamento: "Frio"
+      engajamento: "Frio",
+      captado_por
     };
 
     try {
