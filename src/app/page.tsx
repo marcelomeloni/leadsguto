@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import { CheckCircle } from "@phosphor-icons/react";
+import { CheckCircle, MapPin } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
+import bairrosData from "../../public/bairros_limeira.json";
 
 interface Lead {
   id: string;
@@ -11,11 +12,7 @@ interface Lead {
   hora: string;
 }
 
-const BAIRROS_MOCK = [
-  "Centro", "Vila Nova", "Jardim América", "Bela Vista", "Vila Mariana", 
-  "Santo Amaro", "Jardim Paulista", "Itaim Bibi", "Pinheiros", "Moema",
-  "Tatuapé", "Penha", "Ipiranga", "Liberdade", "Consolação"
-].sort();
+const BAIRROS = (bairrosData.bairros as string[]).sort();
 
 export default function CadastrarPage() {
   const router = useRouter();
@@ -48,7 +45,7 @@ export default function CadastrarPage() {
     }
   }, [router]);
   
-  const filteredBairros = BAIRROS_MOCK.filter(b => 
+  const filteredBairros = BAIRROS.filter(b => 
     b.toLowerCase().includes(bairroBusca.toLowerCase())
   );
 
@@ -157,7 +154,9 @@ export default function CadastrarPage() {
           </div>
 
           <div className="relative">
-            <label className="block text-xs font-medium text-slate-400 mb-1" htmlFor="bairro">Bairro</label>
+            <label className="block text-xs font-medium text-slate-400 mb-1" htmlFor="bairro">
+              Bairro <span className="text-slate-600 font-normal">({BAIRROS.length} bairros de Limeira)</span>
+            </label>
             <input 
               id="bairro"
               name="bairro"
