@@ -27,34 +27,53 @@ export default function CadastrarPage() {
     b.toLowerCase().includes(bairroBusca.toLowerCase())
   );
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
     const form = e.target as HTMLFormElement;
-    const nomeInput = form.elements.namedItem("nome") as HTMLInputElement;
-    const nome = nomeInput.value;
+    const nome = (form.elements.namedItem("nome") as HTMLInputElement).value;
+    const email = (form.elements.namedItem("email") as HTMLInputElement).value;
+    const telefone = (form.elements.namedItem("telefone") as HTMLInputElement).value;
     
-    // Simular API request
-    setTimeout(() => {
+    const payload = {
+      nome,
+      email,
+      telefone,
+      bairro: bairroBusca,
+      origem: "Rua",
+      engajamento: "Frio"
+    };
+
+    try {
+      const res = await fetch("http://localhost:3333/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      
+      if (res.ok) {
+        // Adicionar à lista de recentes
+        const now = new Date();
+        const hora = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+        
+        setRecentLeads(prev => [
+          { id: Math.random().toString(), nome, hora },
+          ...prev
+        ].slice(0, 3));
+        
+        toast.success("Lead cadastrado com sucesso!");
+        form.reset();
+        setBairroBusca("");
+        document.getElementById("nome")?.focus();
+      } else {
+        toast.error("Erro ao salvar lead.");
+      }
+    } catch (err) {
+      toast.error("Erro de conexão.");
+    } finally {
       setLoading(false);
-      
-      // Adicionar à lista de recentes
-      const now = new Date();
-      const hora = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-      
-      setRecentLeads(prev => [
-        { id: Math.random().toString(), nome, hora },
-        ...prev
-      ].slice(0, 3)); // Manter apenas os 3 mais recentes na tela
-      
-      toast.success("Lead cadastrado com sucesso!");
-      form.reset();
-      setBairroBusca("");
-      
-      // Opcional: focar no primeiro input para agilizar o próximo
-      document.getElementById("nome")?.focus();
-    }, 500);
+    }
   };
 
   return (
