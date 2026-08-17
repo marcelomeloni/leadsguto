@@ -4,15 +4,12 @@ import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { CheckCircle, MapPin } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
-import bairrosData from "../../public/bairros_limeira.json";
 
 interface Lead {
   id: string;
   nome: string;
   hora: string;
 }
-
-const BAIRROS = (bairrosData.bairros as string[]).sort();
 
 export default function CadastrarPage() {
   const router = useRouter();
@@ -22,6 +19,7 @@ export default function CadastrarPage() {
   const [bairroBusca, setBairroBusca] = useState("");
   const [showBairros, setShowBairros] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState(false);
+  const [bairrosOptions, setBairrosOptions] = useState<string[]>([]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -40,12 +38,22 @@ export default function CadastrarPage() {
         return;
       }
       setIsAuthorized(true);
+
+      const queryParams = user.municipio_id ? `?municipio_id=${user.municipio_id}` : '';
+      fetch(`${process.env.NEXT_PUBLIC_API_URL || "https://gutobackend.vercel.app/api"}/bairros${queryParams}`)
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            setBairrosOptions(data.map(b => b.nome).sort());
+          }
+        })
+        .catch(console.error);
     } catch (e) {
       router.push("/login");
     }
   }, [router]);
   
-  const filteredBairros = BAIRROS.filter(b => 
+  const filteredBairros = bairrosOptions.filter(b => 
     b.toLowerCase().includes(bairroBusca.toLowerCase())
   );
 
@@ -164,7 +172,7 @@ export default function CadastrarPage() {
 
           <div className="relative">
             <label className="block text-xs font-medium text-slate-400 mb-1" htmlFor="bairro">
-              Bairro <span className="text-slate-600 font-normal">({BAIRROS.length} bairros de Limeira)</span>
+              Bairro <span className="text-slate-600 font-normal">({bairrosOptions.length} bairros disponíveis)</span>
             </label>
             <input 
               id="bairro"
