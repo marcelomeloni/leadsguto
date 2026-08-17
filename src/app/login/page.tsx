@@ -1,18 +1,43 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
+    
+    const form = e.target as HTMLFormElement;
+    const email = (form.elements.namedItem("email") as HTMLInputElement).value;
+    const password = (form.elements.namedItem("password") as HTMLInputElement).value;
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "https://gutobackend.vercel.app/api"}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+      
+      const data = await res.json();
+      
+      if (res.ok) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        toast.success("Login realizado com sucesso!");
+        router.push("/");
+      } else {
+        toast.error(data.error || "Erro ao fazer login.");
+      }
+    } catch (err) {
+      toast.error("Erro de conexão com o servidor.");
+    } finally {
       setLoading(false);
-      window.location.href = "/cadastrar";
-    }, 1000);
+    }
   };
 
   return (
@@ -33,6 +58,7 @@ export default function LoginPage() {
               <label className="block text-sm font-medium text-slate-300 mb-1.5" htmlFor="email">E-mail</label>
               <input 
                 id="email"
+                name="email"
                 type="email" 
                 placeholder="seu@email.com"
                 required
@@ -44,6 +70,7 @@ export default function LoginPage() {
               <label className="block text-sm font-medium text-slate-300 mb-1.5" htmlFor="password">Senha</label>
               <input 
                 id="password"
+                name="password"
                 type="password" 
                 placeholder="••••••••"
                 required
